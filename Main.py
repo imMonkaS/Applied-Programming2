@@ -1,5 +1,24 @@
 """
+Технологии: Python.
 
+Инструменты: PyCharm, draw.io, Notepad++.
+
+Лабораторная работа № 2. C++: STL. Python: Оконные приложения.
+
+1) Выполнить задание на Python на тему оконного приложения (предложив свой вариант или по вариантам из файла).
+Предварительно спроектировать макет в сервисе draw.io. Реализовать приложение предпочтительно на Tkinter
+(https://docs.python.org/3/library/tkinter.html).
+
+Возможна реализация на C++ и QT Widgets по согласованию с преподавателем.
+
+2) Дополнительное задание для претендующих на оценку от 40 баллов: выполнить задание на тему STL
+(предложив свой вариант или по вариантам из файла).
+
+3) Подготовить отчёт о выполненной лабораторной работе. Подготовиться по вопросам к защите.
+
+Вариант 2
+Написать игру крестики-нолики для двух игроков. Использовать в программе основное меню.
+Предусмотреть в игре изменение размера поля.
 
 """
 
@@ -82,7 +101,29 @@ class Game:
         self.__root.mainloop()
 
     def settings_menu(self):
-        pass
+        self.reset()
+
+        text_label = Label(self.__root, text="Change field size", bg="#222020", fg="#d9d9d9", font=("Arial", 40))
+        text_label.pack(fill='x', side='top', pady=50)
+
+        parent = Frame(self.__root, bg="#222020")
+
+        new_size = IntVar()
+
+        field_size_scale = Scale(parent, orient='horizontal', length=5, from_=3, to=8, variable=new_size)
+        field_size_scale.set(self.__field_size)
+        field_size_scale.pack(fill='x', pady=20)
+
+        def back_to_menu():
+            self.__field_size = new_size.get()
+            print(self.__field_size)
+            self.main_menu()
+
+        back_to_main_menu_button = Button(parent, text="Save and return to main menu", bg="#d9d9d9", font=('Maharlika', 18), width=30, height=1,
+                             command=back_to_menu)
+        back_to_main_menu_button.pack(fill='x', pady=20)
+
+        parent.pack(expand=True)
 
     # player_symbol:
     # 1 if checking for X
@@ -176,7 +217,7 @@ class Game:
                                          command=self.main_menu)
             back_to_menu_button.grid(row=0, column=0, sticky=N, pady=30)
 
-        elif self.turn == 9:
+        elif self.turn == self.__field_size**2:
             xo_button['bg'] = '#222020'
             xo_button.config(highlightbackground='#222020')
             xo_button.config(highlightthickness='3')

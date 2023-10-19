@@ -1,3 +1,9 @@
+"""
+
+
+"""
+
+
 from tkinter import *
 from PIL import Image, ImageTk
 from functools import partial
@@ -8,6 +14,24 @@ class Game:
         self.__field_size = 3
         self.__root = Tk()
         self.turn = 1
+
+    # this method is not written by me, but it is weird that Tkinter does not have it as a built-in method
+    def center_main_window_at_start(self):
+        """
+        centers a tkinter window
+        :param win: the main window or Toplevel window to center
+        """
+        self.__root.update_idletasks()
+        width = self.__root.winfo_width()
+        frm_width = self.__root.winfo_rootx() - self.__root.winfo_x()
+        win_width = width + 2 * frm_width
+        height = self.__root.winfo_height()
+        titlebar_height = self.__root.winfo_rooty() - self.__root.winfo_y()
+        win_height = height + titlebar_height + frm_width
+        x = self.__root.winfo_screenwidth() // 2 - win_width // 2
+        y = self.__root.winfo_screenheight() // 2 - win_height // 2
+        self.__root.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+        self.__root.deiconify()
 
     def field_size(self):
         return self.__field_size
@@ -20,6 +44,11 @@ class Game:
         self.__root.geometry("800x600")
         self.__root.minsize(800, 600)
         self.__root.configure(bg="#222020")
+
+        self.center_main_window_at_start()
+
+        # self.__root.eval('tk::PlaceWindow . center')
+
         # self.__root.resizable(False, False)
 
         self.main_menu()
@@ -45,7 +74,7 @@ class Game:
         settings_button.pack(fill='x')
 
         quit_button = Button(parent, text="Quit", bg="#d9d9d9", font=('Maharlika', 18), width=12, height=1,
-                             command=self.__root.quit)
+                             command=self.__root.destroy)
         quit_button.pack(fill='x', pady=20)
 
         parent.pack(expand=True)
@@ -55,14 +84,45 @@ class Game:
     def settings_menu(self):
         pass
 
-    def check_for_winner(self, field):
+    # player_symbol:
+    # 1 if checking for X
+    # 0 if checking for 0
+    def player_won(self, field, player_symbol):
         for i in range(self.__field_size):
             flag = True
             for j in range(self.__field_size):
-                if field[i][j] == 1:
+                if field[i][j] != player_symbol:
                     flag = False
+            if flag:
+                return [(i, j) for j in range(self.__field_size)]
+
+        for i in range(self.__field_size):
+            flag = True
+            for j in range(self.__field_size):
+                if field[j][i] != player_symbol:
+                    flag = False
+            if flag:
+                return [(j, i) for j in range(self.__field_size)]
+
+        main_diagonal_flag = True
+        for i in range(self.__field_size):
+            for j in range(self.__field_size):
+                if field[i][j] != player_symbol and i == j:
+                    main_diagonal_flag = False
+        if main_diagonal_flag:
+            return [(i, i) for i in range(self.__field_size)]
+
+        off_diagonal_flag = True
+        for i in range(self.__field_size):
+            if field[i][-i-1] != player_symbol:
+                off_diagonal_flag = False
+        if off_diagonal_flag:
+            return [(i, abs(i - self.__field_size + 1)) for i in range(self.__field_size)]
+
+        return None
 
     def xo_button_click(self, xo_button: Button, turn_text: Label, field: list, i: int, j: int):
+
         if self.turn % 2 == 0:  # zero's turn
             field[i][j] = 0
             turn_text['text'] = "Current Turn: X"
@@ -72,16 +132,75 @@ class Game:
             turn_text['text'] = "Current Turn: 0"
             xo_button['text'] = 'X'
 
-        self.turn += 1
+        x_win_coeffs = self.player_won(field, 1)
+        o_win_coeffs = self.player_won(field, 0)
+        # check if X won
+        if x_win_coeffs is not None:
+            for button in self.__root.winfo_children()[1].winfo_children():
+                button.config(state='disabled')
+                button['bg'] = '#222020'
+                button.config(highlightbackground='#222020')
+                button.config(highlightthickness='3')
+                button.config(bd='0')
+                if button['text'] == '':
+                    button.config(text='#')
 
-        xo_button['bg'] = '#222020'
-        xo_button.config(highlightbackground='#222020')
-        xo_button.config(highlightthickness='3')
-        xo_button.config(bd='0')
-        xo_button.config(state='disabled')
+                for coeffs in x_win_coeffs:
+                    if button.grid_info()['row'] == coeffs[0] and button.grid_info()['column'] == coeffs[1]:
+                        button['bg'] = '#7de849'
+
+            self.__root.winfo_children()[0].destroy()
+
+            back_to_menu_button = Button(self.__root, width=20, height=2, text='X won\nBack to menu', font='15',
+                                         command=self.main_menu)
+            back_to_menu_button.grid(row=0, column=0, sticky=N, pady=30)
+
+        # check if 0 won
+        elif o_win_coeffs is not None:
+            for button in self.__root.winfo_children()[1].winfo_children():
+                button.config(state='disabled')
+                button['bg'] = '#222020'
+                button.config(highlightbackground='#222020')
+                button.config(highlightthickness='3')
+                button.config(bd='0')
+                if button['text'] == '':
+                    button.config(text='#')
+
+                for coeffs in o_win_coeffs:
+                    if button.grid_info()['row'] == coeffs[0] and button.grid_info()['column'] == coeffs[1]:
+                        button['bg'] = '#7de849'
+
+            self.__root.winfo_children()[0].destroy()
+
+            back_to_menu_button = Button(self.__root, width=20, height=2, text='0 won\n Back to menu', font='15',
+                                         command=self.main_menu)
+            back_to_menu_button.grid(row=0, column=0, sticky=N, pady=30)
+
+        elif self.turn == 9:
+            xo_button['bg'] = '#222020'
+            xo_button.config(highlightbackground='#222020')
+            xo_button.config(highlightthickness='3')
+            xo_button.config(bd='0')
+            xo_button.config(state='disabled')
+
+            self.__root.winfo_children()[0].destroy()
+
+            back_to_menu_button = Button(self.__root, width=20, height=2, text='Nobody won\nBack to menu', font='15',
+                                         command=self.main_menu)
+            back_to_menu_button.grid(row=0, column=0, sticky=N, pady=30)
+
+        else:
+            self.turn += 1
+
+            xo_button['bg'] = '#222020'
+            xo_button.config(highlightbackground='#222020')
+            xo_button.config(highlightthickness='3')
+            xo_button.config(bd='0')
+            xo_button.config(state='disabled')
 
     def play_game(self):
         self.reset()
+        self.turn = 1
 
         current_turn_text_label = Label(self.__root, text="Current Turn: X", bg="#222020", fg="#d9d9d9",
                                         font=("Arial", 40))
@@ -93,14 +212,14 @@ class Game:
         for i in range(self.__field_size):
             play_field.append([])
             for j in range(self.__field_size):
-                play_field[i].append([2])
+                play_field[i].append([])
                 xo_button = Button(field_frame, width=5, height=2, disabledforeground='red', font='50')
                 xo_button['command'] = partial(self.xo_button_click,
                                                xo_button,
                                                current_turn_text_label,
                                                play_field,
                                                i, j)
-                xo_button.grid(row=i + 1, column=j)
+                xo_button.grid(row=i, column=j)
 
         field_frame.grid(row=0, column=0)
         field_frame.grid_rowconfigure(0, weight=1)

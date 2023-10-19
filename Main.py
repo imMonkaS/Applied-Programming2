@@ -62,35 +62,51 @@ class Game:
                 if field[i][j] == 1:
                     flag = False
 
-    def set_on_field(self, xo_button: Button, field: list, i: int, j: int):
-        # if field[i][j][0] == 2:
+    def xo_button_click(self, xo_button: Button, turn_text: Label, field: list, i: int, j: int):
         if self.turn % 2 == 0:  # zero's turn
             field[i][j] = 0
+            turn_text['text'] = "Current Turn: X"
             xo_button['text'] = '0'
         else:
             field[i][j] = 1
+            turn_text['text'] = "Current Turn: 0"
             xo_button['text'] = 'X'
 
         self.turn += 1
 
+        xo_button['bg'] = '#222020'
+        xo_button.config(highlightbackground='#222020')
+        xo_button.config(highlightthickness='3')
+        xo_button.config(bd='0')
         xo_button.config(state='disabled')
 
     def play_game(self):
         self.reset()
 
-        turn = 1
+        current_turn_text_label = Label(self.__root, text="Current Turn: X", bg="#222020", fg="#d9d9d9",
+                                        font=("Arial", 40))
+        current_turn_text_label.grid(row=0, column=0, sticky=N, pady=30)
+
         play_field = []
+        field_frame = Frame(self.__root, bg='#222020')
 
         for i in range(self.__field_size):
             play_field.append([])
             for j in range(self.__field_size):
                 play_field[i].append([2])
-                xo_button = Button(width=5, height=2)
-                xo_button['command']=partial(self.set_on_field, xo_button, play_field, i, j)
-                # xo_button['command'] = partial(self.set_on_field, xo_button, play_field, turn, i, j)
-                xo_button.grid(row=i, column=j)
+                xo_button = Button(field_frame, width=5, height=2, disabledforeground='red', font='50')
+                xo_button['command'] = partial(self.xo_button_click,
+                                               xo_button,
+                                               current_turn_text_label,
+                                               play_field,
+                                               i, j)
+                xo_button.grid(row=i + 1, column=j)
 
-        print(play_field)
+        field_frame.grid(row=0, column=0)
+        field_frame.grid_rowconfigure(0, weight=1)
+        field_frame.grid_columnconfigure(0, weight=1)
+        self.__root.grid_rowconfigure(0, weight=1)
+        self.__root.grid_columnconfigure(0, weight=1)
 
     def reset(self):
         if len(self.__root.winfo_children()) != 0:

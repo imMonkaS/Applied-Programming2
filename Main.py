@@ -1,11 +1,13 @@
 from tkinter import *
 from PIL import Image, ImageTk
+from functools import partial
 
 
 class Game:
     def __init__(self):
         self.__field_size = 3
         self.__root = Tk()
+        self.turn = 1
 
     def field_size(self):
         return self.__field_size
@@ -53,18 +55,42 @@ class Game:
     def settings_menu(self):
         pass
 
+    def check_for_winner(self, field):
+        for i in range(self.__field_size):
+            flag = True
+            for j in range(self.__field_size):
+                if field[i][j] == 1:
+                    flag = False
+
+    def set_on_field(self, xo_button: Button, field: list, i: int, j: int):
+        # if field[i][j][0] == 2:
+        if self.turn % 2 == 0:  # zero's turn
+            field[i][j] = 0
+            xo_button['text'] = '0'
+        else:
+            field[i][j] = 1
+            xo_button['text'] = 'X'
+
+        self.turn += 1
+
+        xo_button.config(state='disabled')
+
     def play_game(self):
         self.reset()
+
+        turn = 1
         play_field = []
-        xo_button = Button()
 
         for i in range(self.__field_size):
             play_field.append([])
-            for _ in range(self.__field_size):
-                play_field[i].append(
+            for j in range(self.__field_size):
+                play_field[i].append([2])
+                xo_button = Button(width=5, height=2)
+                xo_button['command']=partial(self.set_on_field, xo_button, play_field, i, j)
+                # xo_button['command'] = partial(self.set_on_field, xo_button, play_field, turn, i, j)
+                xo_button.grid(row=i, column=j)
 
-                )
-
+        print(play_field)
 
     def reset(self):
         if len(self.__root.winfo_children()) != 0:

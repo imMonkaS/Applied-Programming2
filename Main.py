@@ -63,6 +63,7 @@ class Game:
         self.__root.geometry("800x600")
         self.__root.minsize(800, 600)
         self.__root.configure(bg="#222020")
+        self.__root.iconbitmap("images/ttt-bg.ico")
 
         self.center_main_window_at_start()
 
@@ -74,11 +75,12 @@ class Game:
 
     def main_menu(self):
         self.reset()
+        self.drop_menu()
 
         text_label = Label(self.__root, text="Tic-Tac-Toe", bg="#222020", fg="#d9d9d9", font=("Arial", 40))
         text_label.pack(fill='x', side='top', pady=50)
 
-        image = ImageTk.PhotoImage(Image.open("tic_tac_toe.png").resize((170, 140), Image.LANCZOS))
+        image = ImageTk.PhotoImage(Image.open("images/tic_tac_toe.png").resize((170, 140), Image.LANCZOS))
         image_label = Label(self.__root, bg="#222020", image=image, borderwidth=0, highlightthickness=0)
         image_label.pack(side='top')
 
@@ -102,6 +104,7 @@ class Game:
 
     def settings_menu(self):
         self.reset()
+        self.drop_menu()
 
         text_label = Label(self.__root, text="Change field size", bg="#222020", fg="#d9d9d9", font=("Arial", 40))
         text_label.pack(fill='x', side='top', pady=50)
@@ -116,7 +119,6 @@ class Game:
 
         def back_to_menu():
             self.__field_size = new_size.get()
-            print(self.__field_size)
             self.main_menu()
 
         back_to_main_menu_button = Button(parent, text="Save and return to main menu", bg="#d9d9d9", font=('Maharlika', 18), width=30, height=1,
@@ -177,7 +179,7 @@ class Game:
         o_win_coeffs = self.player_won(field, 0)
         # check if X won
         if x_win_coeffs is not None:
-            for button in self.__root.winfo_children()[1].winfo_children():
+            for button in self.__root.winfo_children()[2].winfo_children():
                 button.config(state='disabled')
                 button['bg'] = '#222020'
                 button.config(highlightbackground='#222020')
@@ -190,7 +192,7 @@ class Game:
                     if button.grid_info()['row'] == coeffs[0] and button.grid_info()['column'] == coeffs[1]:
                         button['bg'] = '#7de849'
 
-            self.__root.winfo_children()[0].destroy()
+            self.__root.winfo_children()[1].destroy()
 
             back_to_menu_button = Button(self.__root, width=20, height=2, text='X won\nBack to menu', font='15',
                                          command=self.main_menu)
@@ -198,7 +200,7 @@ class Game:
 
         # check if 0 won
         elif o_win_coeffs is not None:
-            for button in self.__root.winfo_children()[1].winfo_children():
+            for button in self.__root.winfo_children()[2].winfo_children():
                 button.config(state='disabled')
                 button['bg'] = '#222020'
                 button.config(highlightbackground='#222020')
@@ -211,7 +213,7 @@ class Game:
                     if button.grid_info()['row'] == coeffs[0] and button.grid_info()['column'] == coeffs[1]:
                         button['bg'] = '#7de849'
 
-            self.__root.winfo_children()[0].destroy()
+            self.__root.winfo_children()[1].destroy()
 
             back_to_menu_button = Button(self.__root, width=20, height=2, text='0 won\n Back to menu', font='15',
                                          command=self.main_menu)
@@ -224,7 +226,7 @@ class Game:
             xo_button.config(bd='0')
             xo_button.config(state='disabled')
 
-            self.__root.winfo_children()[0].destroy()
+            self.__root.winfo_children()[1].destroy()
 
             back_to_menu_button = Button(self.__root, width=20, height=2, text='Nobody won\nBack to menu', font='15',
                                          command=self.main_menu)
@@ -239,8 +241,19 @@ class Game:
             xo_button.config(bd='0')
             xo_button.config(state='disabled')
 
+    def drop_menu(self):
+        menu = Menu(self.__root)
+
+        file_drop_menu = Menu(menu, tearoff=0)
+        file_drop_menu.add_command(label="Quit", command=self.__root.destroy)
+
+        menu.add_cascade(label="File", menu=file_drop_menu)
+
+        self.__root.config(menu=menu)
+
     def play_game(self):
         self.reset()
+        self.drop_menu()
         self.turn = 1
 
         current_turn_text_label = Label(self.__root, text="Current Turn: X", bg="#222020", fg="#d9d9d9",
